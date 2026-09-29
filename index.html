@@ -3,49 +3,80 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>動畫腳本自動生成器</title>
+<title>動畫腳本提示詞產生器</title>
 <style>
-:root{--bg:#faf5ec;--card:#fffdf8;--ink:#3b2a1e;--mute:#8a7563;--acc:#b8652e;--line:#e6d9c6;--out:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171a26;--card:#20243a;--ink:#f1e6d6;--mute:#a99a88;--acc:#f0a35e;--line:#333853;--out:#1b1e30}}
-:root[data-theme="dark"]{--bg:#171a26;--card:#20243a;--ink:#f1e6d6;--mute:#a99a88;--acc:#f0a35e;--line:#333853;--out:#1b1e30}
+:root{--bg:#faf5ec;--card:#fffdf8;--ink:#3b2a1e;--mute:#8a7563;--acc:#b8652e;--acc2:#3d8b6f;--line:#e6d9c6;--out:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171a26;--card:#20243a;--ink:#f1e6d6;--mute:#a99a88;--acc:#f0a35e;--acc2:#6fcf9e;--line:#333853;--out:#1b1e30}}
+:root[data-theme="dark"]{--bg:#171a26;--card:#20243a;--ink:#f1e6d6;--mute:#a99a88;--acc:#f0a35e;--acc2:#6fcf9e;--line:#333853;--out:#1b1e30}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.7}
-main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:1.5rem;margin:.2em 0}
-.sub{color:var(--mute);margin:0 0 18px}
+main{max-width:880px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.4rem;margin:.2em 0}
+.sub{color:var(--mute);margin:0 0 14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{flex:1;min-width:160px;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;text-align:center;font-weight:bold}
+.tab.active{border-color:var(--acc);color:var(--acc);background:var(--out)}
+.tab.active.mode-kids{border-color:var(--acc2);color:var(--acc2)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:600px){.grid{grid-template-columns:1fr}}
 label{display:block;font-size:.85rem;color:var(--mute);margin-bottom:3px}
 input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
-textarea{min-height:70px;resize:vertical}
+textarea{min-height:60px;resize:vertical}
 .full{grid-column:1/-1}
 button{font:inherit;padding:9px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
 button.ghost{background:transparent;color:var(--acc)}
-button:disabled{opacity:.5;cursor:wait}
+.mode-kids button{border-color:var(--acc2);background:var(--acc2)}
+.mode-kids button.ghost{background:transparent;color:var(--acc2)}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-#out{white-space:pre-wrap;background:var(--out);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:60px;word-break:break-word}
+#out{white-space:pre-wrap;background:var(--out);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:60px;word-break:break-word;max-height:60vh;overflow-y:auto}
 .hide{display:none}
 .note{font-size:.8rem;color:var(--mute)}
 </style>
 </head>
 <body>
 <main>
-<h1>🎬 動畫腳本自動生成器</h1>
-<p class="sub">選擇設定 → 一鍵產生提示詞 → 貼到 AI，得到十段式完整動畫腳本。</p>
+<h1>🎬 動畫腳本提示詞產生器</h1>
+<p class="sub">選好設定 → 一鍵產生提示詞 → 貼到 Claude / ChatGPT / Gemini 等 AI，即可得到完整動畫腳本。本頁純前端，不會傳送任何資料。</p>
 
-<div class="card">
+<div class="tabs">
+<div class="tab active" id="tabA" onclick="switchMode('A')">🌆 日常故事（成人向）</div>
+<div class="tab" id="tabB" onclick="switchMode('B')">📚 成語故事動畫（國小適用）</div>
+</div>
+
+<!-- MODE A -->
+<div class="card" id="panelA">
 <div class="grid">
 <div class="full"><label>故事想法／創作起點（可自由填寫）</label><textarea id="idea" placeholder="例：經過幾天的獨旅，想做一支小動畫，表現「內心的孤單」與「外表的獨立」"></textarea></div>
-<div id="fields" class="full grid" style="padding:0"></div>
+<div id="fieldsA" class="full grid" style="padding:0"></div>
 </div>
 <div class="row">
-<button id="go">產生提示詞</button>
-<button class="ghost" id="rand">🎲 隨機組合</button>
-<button class="ghost" id="demo">填入範例</button>
+<button id="goA">產生提示詞</button>
+<button class="ghost" id="randA">🎲 隨機組合</button>
+<button class="ghost" id="demoA">填入範例</button>
 </div>
-<p class="note">選好設定後按「產生提示詞」，複製後貼到你慣用的 AI（Claude、ChatGPT、Gemini 等）即可得到完整腳本。本頁不會傳送任何資料。</p>
+</div>
+
+<!-- MODE B -->
+<div class="card hide" id="panelB">
+<div class="grid">
+<div class="full"><label>成語（可直接輸入，或從下方建議清單點選帶入）</label>
+<input id="b_idiom" list="idiomList" placeholder="例：鍥而不捨（可自行輸入其他成語）">
+<datalist id="idiomList">
+<option value="鍥而不捨"><option value="循序漸進"><option value="持之以恆"><option value="精益求精"><option value="虛心求教"><option value="孜孜不倦"><option value="自強不息">
+<option value="一絲不苟"><option value="謙虛謹慎"><option value="腳踏實地"><option value="見異思遷">
+<option value="按部就班"><option value="對症下藥"><option value="事半功倍"><option value="事倍功半"><option value="一舉兩得">
+<option value="同心協力"><option value="合作無間"><option value="患難與共"><option value="推己及人"><option value="將心比心">
+</datalist>
+<div id="idiomChips" style="margin-top:8px;font-size:.82rem;color:var(--mute);line-height:1.9"></div>
+</div>
+<div id="fieldsB" class="full grid" style="padding:0"></div>
+</div>
+<div class="row">
+<button id="goB">產生提示詞</button>
+<button class="ghost" id="randB">🎲 隨機組合</button>
+</div>
 </div>
 
 <div class="card hide" id="resCard">
@@ -55,14 +86,29 @@ button:disabled{opacity:.5;cursor:wait}
 <button id="copy">📋 複製提示詞</button>
 <button class="ghost" id="dl">下載 .txt</button>
 </div>
-<div style="margin-top:14px"><label>AI 回覆腳本後，想修改哪裡？產生「修改提示詞」貼回同一個對話</label>
-<textarea id="rev" placeholder="例：第08幕改成鏡頭向左旋轉45度；桌上多餘筆筒移除"></textarea>
+<div style="margin-top:14px"><label>AI 回覆後，想修改哪裡？產生「修改提示詞」貼回同一個對話</label>
+<textarea id="rev" placeholder="例：第08幕改成鏡頭向左旋轉45度"></textarea>
 <div class="row"><button class="ghost" id="revGo">產生修改提示詞</button></div></div>
 </div>
 </main>
+
 <script>
 const $=id=>document.getElementById(id);
-const SYS=`你是專業的動畫腳本設計師。請一律使用繁體中文，依下列固定結構輸出完整的動畫專案設定與腳本紀錄，不要加多餘的開場白：
+let last="",mode="A";
+
+function switchMode(m){
+ mode=m;
+ $("tabA").classList.toggle("active",m==="A");
+ $("tabB").classList.toggle("active",m==="B");
+ $("tabB").classList.toggle("mode-kids",true);
+ document.body.classList.toggle("mode-kids",m==="B");
+ $("panelA").classList.toggle("hide",m!=="A");
+ $("panelB").classList.toggle("hide",m!=="B");
+ $("resCard").classList.add("hide");
+}
+
+/* ---------- MODE A：日常故事 ---------- */
+const SYS_A=`你是專業的動畫腳本設計師。請一律使用繁體中文，依下列固定結構輸出完整的動畫專案設定與腳本紀錄，不要加多餘的開場白：
 一、專案核心概念（長度、創作起點、核心文字、想傳達的訊息、結尾文字）
 二、主角人物設定（整體形象、臉部、髮型、服裝、配件；註明髮型需在分鏡間保持一致）
 三、整體視覺風格（風格說明、英文視覺關鍵字、重要原則 8~10 條，例如人物一致、不要浮水印、16:9、色調與日夜光線）
@@ -74,10 +120,8 @@ const SYS=`你是專業的動畫腳本設計師。請一律使用繁體中文，
 九、社群發文版本（分行、口語、溫暖，結尾帶出核心句）
 十、作品核心一句話
 內容要具體、連貫、細膩，貼近真實生活的細微時刻，角色與空間細節在各幕之間保持一致。`;
-let last="";
-function show(t){last=t;$("out").textContent=t;$("resCard").classList.remove("hide");$("resCard").scrollIntoView({behavior:"smooth"});}
-const P={
-hero:["33歲亞洲女性單身上班族，溫柔、安靜、成熟、略帶疲憊","28歲亞洲男性設計師，內向、細心、有點理想主義","45歲亞洲女性中階主管，幹練、責任感重、外冷內熱","60歲退休男性，沉穩、話少、懷念過去","24歲剛畢業的社會新鮮人，緊張、努力、帶點迷惘","38歲亞洲男性單親爸爸，疲憊但溫柔","30歲亞洲女性自由工作者，隨性、獨立、愛想事情","一隻住在城市裡的小貓（擬人化）"],
+
+const PA={hero:["33歲亞洲女性單身上班族，溫柔、安靜、成熟、略帶疲憊","28歲亞洲男性設計師，內向、細心、有點理想主義","45歲亞洲女性中階主管，幹練、責任感重、外冷內熱","60歲退休男性，沉穩、話少、懷念過去","24歲剛畢業的社會新鮮人，緊張、努力、帶點迷惘","38歲亞洲男性單親爸爸，疲憊但溫柔","30歲亞洲女性自由工作者，隨性、獨立、愛想事情","一隻住在城市裡的小貓（擬人化）"],
 look:["長波浪紅棕髮、奶油白襯衫、焦糖棕長褲、圓形手錶、米色室內拖鞋","黑色短髮、深藍針織衫、卡其褲、黑框眼鏡","俐落低馬尾、灰色西裝外套、白襯衫、細框耳環","灰白短髮、格紋襯衫、毛背心、老花眼鏡","齊肩黑髮、淺藍襯衫、黑色長裙、帆布包","微捲短髮、連帽外套、牛仔褲、圍巾","及腰直髮、寬鬆亞麻上衣、麻花辮、素色圍裙","橘白毛色、脖子繫小紅領巾"],
 style:["3D 動畫電影感（Pixar 式溫暖質感）","2D 手繪水彩風","日式動畫電影風（吉卜力式背景）","定格動畫風（黏土質感）","復古扁平插畫風","賽璐璐 2D 動畫風","繪本插畫風"],
 palette:["焦糖棕、奶油白、暖橘、橄欖綠、深藍","粉橘、淡紫、奶油黃（柔和夢幻）","深藍、青綠、銀灰（冷靜都會）","墨綠、米色、木頭棕（森林自然）","暗紅、金黃、黑（復古電影）","天藍、白、淺灰（清爽透明）","莫蘭迪灰粉、灰綠、灰藍（低飽和）"],
@@ -85,41 +129,114 @@ tone:["溫馨、安靜、療癒，不刻意悲傷","孤單但平靜，帶一點�
 n:["6 幕（約 48 秒）","8 幕（約 1 分鐘）","12 幕（約 1.5 分鐘）","22 幕（約 3 分鐘）"],
 end:["至少今晚，我可以好好陪自己。","原來，被自己接住也很好。","明天，也請多多指教。","有些路，走著走著就有光了。","讓 AI 自行擬一句"],
 extra:["畫面不可自行增加文字（結尾字幕除外）","不要浮水印","人物在各幕保持一致，不要變成不同角色","不要過度卡通化成幼兒動畫","無特別限制"]};
-const L={hero:"主角設定",look:"外觀設定（髮型／服裝／配件）",style:"視覺風格",palette:"主色調",tone:"情緒基調",n:"分鏡數量（每幕約 8 秒）",end:"結尾文字",extra:"額外限制"};
-const box=$("fields");
-for(const k in P){
- const d=document.createElement("div");if(k==="hero"||k==="look"||k==="end"||k==="extra")d.className="full";
- d.innerHTML=`<label>${L[k]}</label><select id="s_${k}">${P[k].map((o,i)=>`<option value="${i}">${o}</option>`).join("")}<option value="c">✏️ 自訂…</option></select><input id="c_${k}" class="hide" style="margin-top:6px" placeholder="請輸入自訂內容">`;
- box.appendChild(d);
- d.querySelector("select").onchange=e=>d.querySelector("input").classList.toggle("hide",e.target.value!=="c");
+const LA={hero:"主角設定",look:"外觀設定（髮型／服裝／配件）",style:"視覺風格",palette:"主色調",tone:"情緒基調",n:"分鏡數量（每幕約 8 秒）",end:"結尾文字",extra:"額外限制"};
+
+function buildSelects(P,L,box,prefix){
+ for(const k in P){
+  const d=document.createElement("div");if(["hero","look","end","extra","idiom","idiom_custom"].includes(k))d.className="full";
+  d.innerHTML=`<label>${L[k]}</label><select id="${prefix}_s_${k}">${P[k].map((o,i)=>`<option value="${i}">${o}</option>`).join("")}<option value="c">✏️ 自訂…</option></select><input id="${prefix}_c_${k}" class="hide" style="margin-top:6px" placeholder="請輸入自訂內容">`;
+  box.appendChild(d);
+  d.querySelector("select").onchange=e=>d.querySelector("input").classList.toggle("hide",e.target.value!=="c");
+ }
 }
-box.querySelector("#s_n").value="1";
-function val(k){const v=$("s_"+k).value;return v==="c"?($("c_"+k).value.trim()||"（未填，請自行設定）"):P[k][+v];}
-function brief(){
- const e=val("end");
+buildSelects(PA,LA,$("fieldsA"),"a");
+$("a_s_n").value="1";
+function valA(k){const v=$("a_s_"+k).value;return v==="c"?($("a_c_"+k).value.trim()||"（未填，請自行設定）"):PA[k][+v];}
+function briefA(){
+ const e=valA("end");
  return `請依以下設定設計動畫腳本：
 故事想法：${$("idea").value||"（請自行發想一個符合下列設定的溫馨日常題材）"}
-主角：${val("hero")}
-外觀：${val("look")}（各幕需保持一致）
-視覺風格：${val("style")}
-主色調：${val("palette")}
-情緒基調：${val("tone")}
-分鏡數量：${val("n")}
+主角：${valA("hero")}
+外觀：${valA("look")}（各幕需保持一致）
+視覺風格：${valA("style")}
+主色調：${valA("palette")}
+情緒基調：${valA("tone")}
+分鏡數量：${valA("n")}
 結尾文字：${e.startsWith("讓 AI")?"（請擬一句）":e}
-額外限制：${val("extra")}`;
+額外限制：${valA("extra")}`;
 }
-$("go").onclick=()=>show(SYS+"\n\n"+brief());
+$("goA").onclick=()=>show(SYS_A+"\n\n"+briefA());
+$("randA").onclick=()=>{for(const k in PA){if(k==="n")continue;$("a_s_"+k).value=String(Math.floor(Math.random()*PA[k].length));}};
+$("demoA").onclick=()=>{
+ $("idea").value="經過幾天的獨旅，想做一支小動畫，表現「內心的孤單」與「外表的獨立」，故事不刻意悲傷。";
+ for(const k in PA){if(k==="n")continue;$("a_s_"+k).value="0";}
+ $("a_s_n").value="3";$("a_s_extra").value="0";
+};
+
+/* ---------- MODE B：成語故事動畫（國小適用） ---------- */
+const SYS_B=`您是一位專精於動畫腳本設計的大師。您的核心任務是將成語故事的內容轉化為生動有趣的動畫腳本，創作目標是針對國小學童設計繪本動畫，內容需寓教於樂。請一律使用繁體中文回覆。
+
+【行為準則與流程，請依序輸出，並在每一大項結束後，用一句話詢問使用者是否滿意或需要修改】
+
+一、故事選取與改編
+1. 撰寫一個容易懂的故事內容，不超過 200 字，清楚說明該成語的由來與含意。
+2. 將故事轉化為通俗易懂的對白與敘述，避免艱澀詞彙。
+3. 強調故事中的冒險感、勇氣或智慧等正向價值觀。
+4. 主角一律是「人物」，不可出現動物、植物、昆蟲或無生命物體擬人化的角色。
+
+二、腳本撰寫
+1. 提供結構清晰的劇本，包含場景描述、人物動作與對白。
+2. 每一幕節奏明快，適合動畫展現，語氣親切、有畫面感。
+
+三、分鏡設計
+1. 每一幕包含：場景設定、角色表情、鏡頭動作（推、拉、搖、移）。
+2. 具體描述 Q 版角色特徵（大頭小身、圓潤線條、誇張表情）。
+3. 色彩建議使用亮麗、溫暖、活潑的色調，吸引孩童注意力。
+4. 整體視覺風格固定為：適合在 Moonland 主題創作中生成的 3D 皮克斯卡通風格（Q 版、大頭小身、圓潤可愛、色彩鮮豔溫暖、適合兒童）。
+
+四、表格分鏡腳本
+以 Markdown 表格輸出，欄位依序為：幕數編號｜中文場景說明｜英文 Prompt｜影片首幀中文提示詞｜影片尾幀中文提示詞。
+
+五、角色三視圖
+針對每位主要人物，提供正面、背面、側面定裝照的中文與英文提示詞（各一句，包含 Q 版 3D 皮克斯風格關鍵字、服裝與髮型描述，確保三個角度的角色特徵一致）。
+
+整體語氣：親切、專業、富有創意，像一位引導孩子進入故事世界的親切導師，用生動、充滿畫面感的語言描述。`;
+
+const PB={
+hero:["聰明勇敢的小男孩","善良機智的小女孩","認真好學的少年書生","樂於助人的少年獵人","有智慧的老爺爺","溫柔堅定的老奶奶","一群互相幫助的孩子"],
+era:["古代中國村莊（先秦～漢，草屋、農田、布衣）","古代中國書院（唐宋，書卷、長袍、庭院）","古代中國宮廷（明清、宮殿、華服）","民初復古校園（長衫／學生服、老校舍）","現代校園（制服、教室、操場）","現代城市（街道、公園、公寓）","奇幻異世界（城堡、森林、魔法村莊）"],
+animStyle:["Q版 3D 皮克斯卡通風（大頭小身、圓潤可愛，適合 Moonland）","日式動畫繪本風（柔和線條、水彩質感）","2D 賽璐璐卡通風（鮮明色塊、粗黑邊）","黏土定格動畫風（手作質感、圓潤造型）","水彩繪本風（柔和筆觸、溫馨童趣）"],
+n:["10 幕（精簡版）","12 幕（標準版）","16 幕（詳細版）","20 幕（完整版）"]};
+const LB={hero:"主角人設",era:"時代背景",animStyle:"動畫風格",n:"分鏡數量"};
+buildSelects(PB,LB,$("fieldsB"),"b");
+
+const IDIOM_GROUPS={
+"勵志向上":["鍥而不捨","循序漸進","持之以恆","精益求精","虛心求教","孜孜不倦","自強不息"],
+"個性態度":["一絲不苟","謙虛謹慎","腳踏實地","見異思遷"],
+"做事方法":["按部就班","對症下藥","事半功倍","事倍功半","一舉兩得"],
+"人際互動":["同心協力","合作無間","患難與共","推己及人","將心比心"]
+};
+(function(){
+ const box=$("idiomChips");
+ for(const g in IDIOM_GROUPS){
+  const line=document.createElement("div");
+  line.innerHTML=`<b>${g}：</b>`+IDIOM_GROUPS[g].map(w=>`<span data-w="${w}" style="cursor:pointer;color:var(--acc2);text-decoration:underline;margin-right:8px">${w}</span>`).join("");
+  box.appendChild(line);
+ }
+ box.addEventListener("click",e=>{if(e.target.dataset.w){$("b_idiom").value=e.target.dataset.w;}});
+})();
+
+function valB(k){const v=$("b_s_"+k).value;return v==="c"?($("b_c_"+k).value.trim()||"（未填，請自行設定）"):PB[k][+v];}
+function briefB(){
+ const idiom=$("b_idiom").value.trim()||"（請自行挑選一個適合國小學童的成語）";
+ return `請依以下設定製作成語故事動畫腳本：
+成語：${idiom}
+主角人設：${valB("hero")}（全片必須是人物角色，不可出現動物、植物、昆蟲或無生命物體擬人化）
+時代背景：${valB("era")}（角色的服裝、髮型、場景道具需符合此時代設定，並在各幕與三視圖中保持一致）
+動畫風格：${valB("animStyle")}
+分鏡數量：${valB("n")}
+色彩建議：依動畫風格與時代背景，選用明亮、溫暖、活潑的色調，吸引國小學童注意力`;
+}
+$("goB").onclick=()=>show(SYS_B+"\n\n"+briefB());
+$("randB").onclick=()=>{for(const k in PB){if(k==="n")continue;$("b_s_"+k).value=String(Math.floor(Math.random()*PB[k].length));}};
+
+/* ---------- 共用：輸出、複製、下載、修改 ---------- */
+function show(t){last=t;$("out").textContent=t;$("resCard").classList.remove("hide");$("resCard").scrollIntoView({behavior:"smooth"});}
 $("revGo").onclick=()=>{const v=$("rev").value.trim();if(!v)return;
- show("請套用以下修改，重新輸出完整腳本（結構不變），並把這些修改追加到「七、重要畫面修改紀錄」：\n"+v);};
+ show("請套用以下修改，重新輸出完整內容（結構不變）：\n"+v);};
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(last);}catch(e){const r=document.createRange();r.selectNodeContents($("out"));const g=getSelection();g.removeAllRanges();g.addRange(r);document.execCommand("copy");}
  $("copy").textContent="✅ 已複製";setTimeout(()=>$("copy").textContent="📋 複製提示詞",1500);};
 $("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([last],{type:"text/plain;charset=utf-8"}));a.download="動畫腳本提示詞.txt";a.click();URL.revokeObjectURL(a.href);};
-$("rand").onclick=()=>{for(const k in P){if(k==="n")continue;$("s_"+k).value=String(Math.floor(Math.random()*P[k].length));$("s_"+k).dispatchEvent(new Event("change"));}};
-$("demo").onclick=()=>{
- $("idea").value="經過幾天的獨旅，想做一支小動畫，表現「內心的孤單」與「外表的獨立」，故事不刻意悲傷。";
- for(const k in P){if(k==="n")continue;$("s_"+k).value="0";$("s_"+k).dispatchEvent(new Event("change"));}
- $("s_n").value="3";$("s_extra").value="0";
-};
 </script>
 </body>
 </html>
