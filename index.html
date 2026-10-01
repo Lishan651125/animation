@@ -79,6 +79,11 @@ button.ghost{background:transparent;color:var(--acc)}
 </div>
 </div>
 
+<div class="card" id="styleCard">
+<label style="margin-bottom:8px">🎨 進階視覺風格關鍵字（每類下拉選一項，選填；會附加到提示詞最後）</label>
+<div id="styleGroups" class="grid"></div>
+</div>
+
 <div class="card hide" id="resCard">
 <label>提示詞（複製後貼到 AI）</label>
 <div id="out"></div>
@@ -155,7 +160,7 @@ function briefA(){
 結尾文字：${e.startsWith("讓 AI")?"（請擬一句）":e}
 額外限制：${valA("extra")}`;
 }
-$("goA").onclick=()=>show(SYS_A+"\n\n"+briefA());
+$("goA").onclick=()=>show(withStyles(SYS_A+"\n\n"+briefA()));
 $("randA").onclick=()=>{for(const k in PA){if(k==="n")continue;$("a_s_"+k).value=String(Math.floor(Math.random()*PA[k].length));}};
 $("demoA").onclick=()=>{
  $("idea").value="經過幾天的獨旅，想做一支小動畫，表現「內心的孤單」與「外表的獨立」，故事不刻意悲傷。";
@@ -227,8 +232,38 @@ function briefB(){
 分鏡數量：${valB("n")}
 色彩建議：依動畫風格與時代背景，選用明亮、溫暖、活潑的色調，吸引國小學童注意力`;
 }
-$("goB").onclick=()=>show(SYS_B+"\n\n"+briefB());
+$("goB").onclick=()=>show(withStyles(SYS_B+"\n\n"+briefB()));
 $("randB").onclick=()=>{for(const k in PB){if(k==="n")continue;$("b_s_"+k).value=String(Math.floor(Math.random()*PB[k].length));}};
+
+
+const STYLE_GROUPS=[
+["一、風格與藝術調性",[["anime_style","日系動漫精緻插畫"],["cyberpunk","賽博朋克霓虹夜景"],["cinematic","電影級光影畫面感"],["watercolor","水彩透明夢幻渲染"],["flat_vector","扁平向量商用插畫"],["oil_painting","古典油畫厚塗質感"],["pixel_art","復古像素遊戲畫風"],["claymation","可愛黏土 3D 造型"],["line_art","極簡黑白線稿塗鴉"],["surrealism","超現實主義夢幻感"]]],
+["二、畫面光影與氣氛",[["golden_hour","夕陽黃金光線渲染"],["volumetric","耶穌光丁達爾效應"],["neon_light","炫彩霓虹光影對比"],["dramatic_light","強烈戲劇陰影光罩"],["soft_light","柔和漫射自然光線"],["moody_dark","暗黑低調沉穩氛圍"],["backlight","輪廓逆光邊緣髮光"],["studio_lighting","商業棚拍專業打光"],["bioluminescent","生物發光夢幻效果"],["cyber_glow","未來感科技發光線"]]],
+["三、鏡頭與構圖視角",[["close_up","特寫鏡頭捕捉細節"],["macro_shot","超微距視角毛孔感"],["wide_angle","廣角震撼壯闊場面"],["bird_eye","鳥瞰俯視視角構圖"],["low_angle","仰角仰視霸氣構圖"],["knolling","俯拍平鋪整理風格"],["isometric","等軸測 3D 空間圖"],["bokeh_blur","大光圈背景虛化感"],["fisheye","魚眼鏡頭透視扭曲"],["rule_of_thirds","經典三分法黃金分割"]]],
+["四、人物與角色細節",[["realistic_skin","逼真皮膚肌理質感"],["expressive_eyes","深邃有神細緻眼眸"],["windblown_hair","隨風飄逸髮絲動態"],["fashion_model","高訂時尚超模氣場"],["cyber_cyborg","半機械賽博人造型"],["chibi_cute","Q版大頭可愛人設"],["fantasy_armor","奇幻精緻金屬鎧甲"],["streetwear","美式街頭潮牌穿搭"],["fantasy_elf","仙氣夢幻精靈造型"],["expression_max","情感生動表情特寫"]]],
+["五、風景與空間建築",[["futuristic_city","未來科技城市"],["misty_forest","晨霧縈繞神秘森林"],["cozy_interior","溫馨日系奶油風房"],["solarpunk","生態綠能未來建築"],["ruins_nature","廢墟植被共生美學"],["underwater_world","深海夢幻珊瑚世界"],["space_galaxy","浩瀚星空宇宙銀河"],["cyber_street","雨後霓虹雨夜街道"],["zen_garden","日式枯山水禪意景"],["snow_mountain","雪山壯麗極光夜"]]]
+];
+(function(){
+ const box=$("styleGroups");
+ STYLE_GROUPS.forEach(([title,items],gi)=>{
+  const d=document.createElement("div");d.className="full";
+  d.innerHTML=`<label>${title}</label><select id="style_s_${gi}"><option value="">（不選）</option>${items.map((it,ii)=>`<option value="${ii}">${it[0]}｜${it[1]}</option>`).join("")}</select>`;
+  box.appendChild(d);
+ });
+})();
+function selectedStyles(){
+ const out=[];
+ STYLE_GROUPS.forEach(([title,items],gi)=>{
+  const v=$("style_s_"+gi).value;
+  if(v!=="")out.push(`${items[+v][0]}（${items[+v][1]}）`);
+ });
+ return out;
+}
+function withStyles(text){
+ const st=selectedStyles();
+ if(!st.length)return text;
+ return text+"\n\n額外視覺風格關鍵字（請融入畫面與分鏡描述中）：\n"+st.join("、");
+}
 
 /* ---------- 共用：輸出、複製、下載、修改 ---------- */
 function show(t){last=t;$("out").textContent=t;$("resCard").classList.remove("hide");$("resCard").scrollIntoView({behavior:"smooth"});}
